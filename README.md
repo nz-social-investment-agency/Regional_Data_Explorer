@@ -57,9 +57,9 @@ The following indicator codes can then be run sequentially (in numerical order);
 
 Then the summarisation tools can be run in R in the following order;
 
-- generate_results
-- super_sub_group
-- combine_output
+- generate_results_202410
+- super_sub_group_auto
+- combine_output_auto
 
 ## Citation
 
