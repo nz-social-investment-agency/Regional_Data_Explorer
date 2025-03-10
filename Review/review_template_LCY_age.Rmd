@@ -1,0 +1,181 @@
+# ---
+# title: "template"
+# author: "DY"
+# date: "19/06/2023"
+# output: html_document
+# ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(here)
+```
+
+
+```{r}
+
+filenames <- c('') #Add file names here
+directoryname <- '../Results/Sub_grp_adjusted'
+
+dat <- tibble()
+for(ff in filenames){
+  print(file.path(here(),directoryname,ff))
+  new_dat<- read.csv(file.path(directoryname,ff))
+  print(new_dat)
+  dat <- rbind(dat,new_dat)
+  rm(new_dat)
+}
+
+```
+
+
+
+```{r}
+head(dat)
+
+```
+
+
+```{r}
+
+dat<- dat %>% mutate(
+  val03 = case_when(col03 %in% c("asian","european","maori","pacific","MELAA","other") ~ as.character(col03),
+                    TRUE ~ as.character(val03)),
+  col03 = case_when(col03 %in% c("asian","european","maori","pacific","MELAA","other") ~ 'Ethnicity',
+                    TRUE ~ as.character(col03)),
+  
+  val04 = case_when(col04 %in% c("asian","european","maori","pacific","MELAA","other") ~ as.character(col04),
+                    TRUE ~ as.character(val04)),
+  
+  col04 = case_when(col04 %in% c("asian","european","maori","pacific","MELAA","other") ~ 'Ethnicity',
+                    TRUE ~ as.character(col04))
+  
+  )
+
+```
+
+check that series is reasonably consistent
+check that sum of population, regc, ta and sa2 is reasonable
+
+
+raw_distinct is default summarisation
+```{r}
+
+dat %>% 
+  filter(is.na(col03),is.na(col04)) %>%
+  group_by(val01, col02) %>%
+    filter(val02 != -99) %>% #remove all unknowns from the location
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  ggplot(aes(x = val01, y = raw_distinct, group = col02, col = col02)) +
+  geom_line(stat="identity") +
+  theme(axis.text.x = element_text(angle = -30, hjust=0, vjust=.5)) +
+  expand_limits(x = 0, y = 0) +
+  ggtitle("Total template")
+
+
+
+dat %>% 
+  filter(is.na(col03), is.na(col04)) %>%
+    group_by(val01, col02) %>%
+    filter(val02 != -99) %>% #remove all unknowns from the location
+  group_by(val01, col02,summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  ggplot(aes(x = val01, y = raw_distinct, group = col02, col = col02)) +
+  geom_line(stat="identity") +
+  facet_wrap(facets = 'summarised_var')
+  
+
+```
+
+
+
+
+```{r}
+#Regional trends
+
+dat %>% 
+  filter(is.na(col03)) %>%
+  filter(val02 != -99) %>% #remove all unknowns from the location
+  filter(col02 == 'REGC') %>%
+  group_by(val01, col02, val02, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  
+  ggplot(aes(x = val01, y = raw_distinct, group = col02, col = col02)) +
+  geom_line(stat="identity") +
+  facet_wrap(facets = 'val02')
+
+
+```
+
+
+
+```{r}
+
+
+# Ethnicity - 
+dat %>% 
+  filter(col03 == "Ethnicity",is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+dat %>% 
+  filter(col03 == "Ethnicity",val03 == as.character('maori'), is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+
+dat %>% 
+  filter(col03 == "Ethnicity",val03 == as.character('european'), is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+
+# Age -
+dat %>% 
+  filter(col03 == "AGE_RDP",is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+# Sex - 
+dat %>% 
+  filter(col03 == "sex_no_gender",is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+# Dep- 
+dat %>% 
+  filter(col03 == "NZDep2018",is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+# Urban Rural 
+dat %>% 
+  filter(col03 == "swa_urban_rural_ind",is.na(col04)) %>%
+  group_by(val01, col02, val03, summarised_var) %>%
+  summarise(raw_distinct = sum(raw_distinct)) %>%
+  ggplot(aes(x = val01, y = raw_distinct, group = interaction(col02, summarised_var), col = col02, linetype = summarised_var)) +
+  geom_line(stat="identity")+
+  facet_wrap('val03')
+
+```
+
+
