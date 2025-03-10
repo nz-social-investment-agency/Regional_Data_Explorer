@@ -180,6 +180,3 @@ FROM #b4sc_health_flags h
 WHERE [IDI_Sandpit].[DL-MAA2023-55].[master_table_202410].snz_uid = h.snz_uid
 AND DATEADD(YEAR, 5, (DATEADD(mm, DATEDIFF(m,0, [IDI_Sandpit].[DL-MAA2023-55].[master_table_202410].[DOB]) + 1, 0))) >= h.general_date
 AND [IDI_Sandpit].[DL-MAA2023-55].[master_table_202410].[AGE] = 5;
-
-
-
